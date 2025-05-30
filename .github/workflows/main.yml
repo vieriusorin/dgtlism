@@ -34,6 +34,9 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
+      - name: Run Security Audit
+        run: npm audit --audit-level high
+
       - name: Build Application
         run: npm run build
 
@@ -62,17 +65,26 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      - name: Verify AWS Connection
+        run: |
+          echo "Verifying AWS connection..."
+          aws sts get-caller-identity
+          aws s3 ls s3://${{ secrets.AWS_BUCKET }} || echo "⚠️ S3 bucket access verification failed"
+
       - name: Install Dependencies
         run: npm ci
 
       - name: Build Application
         run: npm run build
+        env:
+          # Treat warnings as warnings, not errors
+          CI: false
 
       # This step is used to upload the build artifacts to the repository.
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: build-files
+          name: build-files-${{ github.sha }}  # Makes it unique per commit
           path: ${{ env.BUILD_PATH }}
           retention-days: 30
 
@@ -107,18 +119,29 @@ jobs:
 
       - name: Wait for CloudFront Invalidation
         run: |
-          echo "Waiting for invalidation ${{ env.AWS_CLOUDFRONT_INVALIDATION_ID }} to complete..."
+          echo "Waiting for invalidation ${{ env.INVALIDATION_ID }} to complete..."
           aws cloudfront wait invalidation-completed \
             --distribution-id ${{ secrets.AWS_CLOUDFRONT_DISTRIBUTION_ID }} \
-            --id ${{ env.AWS_CLOUDFRONT_INVALIDATION_ID }}
+            --id ${{ env.INVALIDATION_ID }}
           echo "✅ Invalidation completed successfully!"
 
       - name: Deployment Summary
         run: |
-          echo "🚀 Deployment completed successfully!"
-          echo "📦 Files deployed to: s3://${{ secrets.AWS_BUCKET }}"
-          echo "🌐 CloudFront distribution: ${{ secrets.AWS_CLOUDFRONT_DISTRIBUTION_ID }}"
-          echo "⚡ Cache invalidation completed"
+          echo "## 🎉 Deployment Successful!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **S3 Bucket:** s3://${{ secrets.AWS_BUCKET }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **CloudFront Distribution:** ${{ secrets.AWS_CLOUDFRONT_DISTRIBUTION_ID }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Invalidation ID:** ${{ env.INVALIDATION_ID }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit SHA:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Deployed at:** $(date)" >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify on Failure
+        if: failure()
+        run: |
+          echo "## ❌ Deployment Failed!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Check the logs above for error details." >> $GITHUB_STEP_SUMMARY
+          echo "**Failed step:** ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
 
   # Enhanced version with better security (IAM role)
   deploy-secure:
