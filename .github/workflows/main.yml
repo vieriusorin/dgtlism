@@ -47,6 +47,7 @@ jobs:
     # Only deploy on push to main branch (not on PRs)
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     
+    # This job is used to deploy the application to AWS S3 and CloudFront
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
