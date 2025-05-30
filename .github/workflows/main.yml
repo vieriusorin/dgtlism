@@ -1,5 +1,7 @@
-name: Deploy Website
+# This workflow deploys the DGTLISM website to AWS S3 and CloudFront
+name: DGTLISM Website Deployment
 
+# Trigger conditions
 on:
   push: 
     branches: [main]
@@ -7,25 +9,172 @@ on:
     branches: [main]
   workflow_dispatch:
 
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
+# Environment variables
+env:
+  NODE_VERSION: '22'
+  BUILD_PATH: './build'
 
+jobs:
+  # Test job for pull requests
+  test:
+    name: Test Application
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
     steps:
       - name: Checkout Repository
-      - uses: actions@checkout@v2
-      
-      - name: Configure AWS
-      - uses: aws-actions/configure-aws-credentials@v4
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key-id: ${{ secrets.AWS_SECRET_ACCESS_KEY}}
-          aws-region: ${{ secrets.AWS_REGION }}
-      - name: Install Modules
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Dependencies
         run: npm ci
+
+      - name: Run Tests
+        run: npm test -- --coverage --watchAll=false
+
       - name: Build Application
         run: npm run build
+
+  # Deploy job for main branch only
+  deploy:
+    name: Deploy to AWS
+    runs-on: ubuntu-latest
+    # Only deploy on push to main branch (not on PRs)
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Application
+        run: npm run build
+
+      # This step is used to upload the build artifacts to the repository.
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-files
+          path: ${{ env.BUILD_PATH }}
+          retention-days: 30
+
+      # This step is used to deploy the build artifacts to the S3 bucket.
       - name: Deploy to S3
-        run: aws s3 sync ./build s3://${{ secrets.AWS_BUCKET }}
-      - name: Create Cloudfront Invalidation
-        run: aws cloudfront create-invalidation --distribution-id ${{ secrets.AWS_DISTRIBUTION_ID }} --paths "/*"
+        run: |
+          echo "Deploying to S3 bucket: ${{ secrets.AWS_BUCKET }}"
+          aws s3 sync ${{ env.BUILD_PATH }} s3://${{ secrets.AWS_BUCKET }} \
+            --delete \
+            --cache-control "public,max-age=31536000,immutable" \
+            --exclude "*.html" \
+            --exclude "service-worker.js"
+          
+          # Deploy HTML files with shorter cache
+          aws s3 sync ${{ env.BUILD_PATH }} s3://${{ secrets.AWS_BUCKET }} \
+            --delete \
+            --cache-control "public,max-age=0,must-revalidate" \
+            --include "*.html" \
+            --include "service-worker.js"
+
+      - name: Create CloudFront Invalidation
+        run: |
+          echo "Creating CloudFront invalidation for distribution: ${{ secrets.AWS_DISTRIBUTION_ID }}"
+          INVALIDATION_ID=$(aws cloudfront create-invalidation \
+            --distribution-id ${{ secrets.AWS_DISTRIBUTION_ID }} \
+            --paths "/*" \
+            --query 'Invalidation.Id' \
+            --output text)
+          
+          echo "Invalidation created with ID: $INVALIDATION_ID"
+          echo "INVALIDATION_ID=$INVALIDATION_ID" >> $GITHUB_ENV
+
+      - name: Wait for CloudFront Invalidation
+        run: |
+          echo "Waiting for invalidation ${{ env.INVALIDATION_ID }} to complete..."
+          aws cloudfront wait invalidation-completed \
+            --distribution-id ${{ secrets.AWS_DISTRIBUTION_ID }} \
+            --id ${{ env.INVALIDATION_ID }}
+          echo "✅ Invalidation completed successfully!"
+
+      - name: Deployment Summary
+        run: |
+          echo "🚀 Deployment completed successfully!"
+          echo "📦 Files deployed to: s3://${{ secrets.AWS_BUCKET }}"
+          echo "🌐 CloudFront distribution: ${{ secrets.AWS_DISTRIBUTION_ID }}"
+          echo "⚡ Cache invalidation completed"
+
+  # Enhanced version with better security (IAM role)
+  deploy-secure:
+    name: Deploy to AWS (Secure)
+    runs-on: ubuntu-latest
+    # Uncomment this job and comment out the 'deploy' job above to use IAM role authentication
+    if: false  # Set to true when you want to use this secure version
+    
+    permissions:
+      id-token: write   # Required for OIDC
+      contents: read
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          role-session-name: GitHubActions-DGTLISM
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Application
+        run: npm run build
+        env:
+          CI: false  # Treat warnings as warnings, not errors
+
+      - name: Deploy to S3 with versioning
+        run: |
+          # Create deployment timestamp
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          echo "TIMESTAMP=$TIMESTAMP" >> $GITHUB_ENV
+          
+          # Deploy with timestamped backup
+          aws s3 sync ${{ env.BUILD_PATH }} s3://${{ secrets.AWS_BUCKET }}/releases/$TIMESTAMP/
+          aws s3 sync ${{ env.BUILD_PATH }} s3://${{ secrets.AWS_BUCKET }}/ --delete
+
+      - name: Create CloudFront Invalidation
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ secrets.AWS_DISTRIBUTION_ID }} \
+            --paths "/*"
+
+      - name: Deployment Summary
+        run: |
+          echo "🚀 Deployment completed successfully!"
+          echo "📦 Files deployed to: s3://${{ secrets.AWS_BUCKET }}"
