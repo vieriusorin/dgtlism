@@ -95,9 +95,9 @@ jobs:
 
       - name: Create CloudFront Invalidation
         run: |
-          echo "Creating CloudFront invalidation for distribution: ${{ secrets.AWS_DISTRIBUTION_ID }}"
+          echo "Creating CloudFront invalidation for distribution: ${{ secrets.AWS_CLOUDFRONT_DISTRIBUTION_ID }}"
           INVALIDATION_ID=$(aws cloudfront create-invalidation \
-            --distribution-id ${{ secrets.AWS_DISTRIBUTION_ID }} \
+            --distribution-id ${{ secrets.AWS_CLOUDFRONT_DISTRIBUTION_ID }} \
             --paths "/*" \
             --query 'Invalidation.Id' \
             --output text)
@@ -107,17 +107,17 @@ jobs:
 
       - name: Wait for CloudFront Invalidation
         run: |
-          echo "Waiting for invalidation ${{ env.INVALIDATION_ID }} to complete..."
+          echo "Waiting for invalidation ${{ env.AWS_CLOUDFRONT_INVALIDATION_ID }} to complete..."
           aws cloudfront wait invalidation-completed \
-            --distribution-id ${{ secrets.AWS_DISTRIBUTION_ID }} \
-            --id ${{ env.INVALIDATION_ID }}
+            --distribution-id ${{ secrets.AWS_CLOUDFRONT_DISTRIBUTION_ID }} \
+            --id ${{ env.AWS_CLOUDFRONT_INVALIDATION_ID }}
           echo "✅ Invalidation completed successfully!"
 
       - name: Deployment Summary
         run: |
           echo "🚀 Deployment completed successfully!"
           echo "📦 Files deployed to: s3://${{ secrets.AWS_BUCKET }}"
-          echo "🌐 CloudFront distribution: ${{ secrets.AWS_DISTRIBUTION_ID }}"
+          echo "🌐 CloudFront distribution: ${{ secrets.AWS_CLOUDFRONT_DISTRIBUTION_ID }}"
           echo "⚡ Cache invalidation completed"
 
   # Enhanced version with better security (IAM role)
@@ -169,7 +169,7 @@ jobs:
       - name: Create CloudFront Invalidation
         run: |
           aws cloudfront create-invalidation \
-            --distribution-id ${{ secrets.AWS_DISTRIBUTION_ID }} \
+            --distribution-id ${{ secrets.AWS_CLOUDFRONT_DISTRIBUTION_ID }} \
             --paths "/*"
 
       - name: Deployment Summary
