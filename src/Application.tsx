@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import AnimatedCursor from './domains/ui/components/AnimatedCursor';
 import BackgroundEffects from './domains/ui/components/BackgroundEffects';
 import Navigation from './domains/navigation/components/Navigation';
@@ -43,4 +43,4 @@ const Application = () => {
   );
 };
 
-export default Application;
+export default Application; 

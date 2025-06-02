@@ -2,7 +2,12 @@ import React from 'react';
 import { BLOG_POSTS } from '../../../shared/constants/animations';
 import MorphingButton from '../../ui/components/MorphingButton';
 
-const BlogSection = ({ visibleSections, addToRefs }) => {
+type TBlogSectionProps = {
+  visibleSections: Set<number>;
+  addToRefs: (el: HTMLElement | null, index: number) => void;
+};
+
+const BlogSection: React.FC<TBlogSectionProps> = ({ visibleSections, addToRefs }) => {
   return (
     <section className='py-24 px-6 relative' data-section='1' ref={(el) => addToRefs(el, 1)}>
       <div className='max-w-4xl mx-auto text-center'>

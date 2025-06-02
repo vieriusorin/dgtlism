@@ -1,6 +1,13 @@
-import React from 'react';
 
-const MorphingButton = ({ 
+type TMorphingButtonProps = {
+  children: React.ReactNode;
+  variant?: 'primary' | 'secondary';
+  style?: React.CSSProperties;
+  onClick?: () => void;
+  className?: string;
+};
+
+const MorphingButton: React.FC<TMorphingButtonProps> = ({ 
   children, 
   variant = 'primary', 
   style = {}, 

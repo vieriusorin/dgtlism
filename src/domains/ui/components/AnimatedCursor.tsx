@@ -1,7 +1,6 @@
-import React from 'react';
 import { useMousePosition } from '../../../shared/hooks/useMousePosition';
 
-const AnimatedCursor = ({ isVisible }) => {
+const AnimatedCursor = ({ isVisible }: { isVisible: boolean }) => {
   const mousePosition = useMousePosition();
 
   return (

@@ -1,7 +1,12 @@
 import React from 'react';
 import MorphingButton from '../../ui/components/MorphingButton';
 
-const ContactSection = ({ visibleSections, addToRefs }) => {
+type TContactSectionProps = {
+  visibleSections: Set<number>;
+  addToRefs: (el: HTMLElement | null, index: number) => void;
+};
+
+const ContactSection: React.FC<TContactSectionProps> = ({ visibleSections, addToRefs }) => {
   return (
     <section className='py-24 px-6 text-center' data-section='2' ref={(el) => addToRefs(el, 2)}>
       <div className='max-w-3xl mx-auto'>

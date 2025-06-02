@@ -1,6 +1,8 @@
-import React from 'react';
+type TCinematicVisualProps = {
+  isVisible: boolean;
+};
 
-const CinematicVisual = ({ isVisible }) => {
+const CinematicVisual: React.FC<TCinematicVisualProps> = ({ isVisible }) => {
   return (
     <div className={`relative transition-all duration-1000 delay-600 ${isVisible ? 'translate-x-0 opacity-100' : 'translate-x-20 opacity-0'}`}>
       <div className='relative w-full h-96 max-w-2xl mx-auto overflow-hidden'>

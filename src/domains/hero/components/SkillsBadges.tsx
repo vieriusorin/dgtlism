@@ -1,7 +1,11 @@
 import React from 'react';
 import { SKILLS_LIST, ANIMATION_DELAYS } from '../../../shared/constants/animations';
 
-const SkillsBadges = ({ isVisible }) => {
+type TSkillsBadgesProps = {
+  isVisible: boolean;
+};
+
+const SkillsBadges: React.FC<TSkillsBadgesProps> = ({ isVisible }) => {
   return (
     <div className={`flex flex-wrap gap-3 justify-center lg:justify-start transition-all duration-1000 delay-1100 ${isVisible ? 'translate-x-0 opacity-100' : '-translate-x-20 opacity-0'}`}>
       {SKILLS_LIST.map((skill, i) => (

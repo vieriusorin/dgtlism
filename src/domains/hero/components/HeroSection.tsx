@@ -1,10 +1,14 @@
-import React from 'react';
 import { ANIMATION_DELAYS } from '../../../shared/constants/animations';
 import CinematicVisual from './CinematicVisual';
 import SkillsBadges from './SkillsBadges';
 import MorphingButton from '../../ui/components/MorphingButton';
 
-const HeroSection = ({ isVisible }) => {
+type THeroSectionProps = {
+  isVisible: boolean;
+};
+
+
+const HeroSection: React.FC<THeroSectionProps> = ({ isVisible }) => {
   return (
     <section className='min-h-screen flex items-center justify-center relative px-6 pt-24 overflow-hidden'>
       <div className='absolute inset-0 pointer-events-none'>

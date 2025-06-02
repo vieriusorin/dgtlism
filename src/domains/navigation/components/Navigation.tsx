@@ -1,12 +1,19 @@
 import React from 'react';
 import { useScrollBehavior } from '../../../shared/hooks/useScrollBehavior';
+//@ts-ignore
 import logo from '../../../assets/logo.svg';
 
-const Navigation = ({ isVisible, setActiveSection }) => {
+type TNavigationProps = {
+  isVisible: boolean;
+  activeSection?: number;
+  setActiveSection: (section: number) => void;
+};
+
+const Navigation: React.FC<TNavigationProps> = ({ isVisible, setActiveSection }) => {
   const { scrolled } = useScrollBehavior();
 
   // const navItems = ['Blog', 'About', 'Contact'];
-  const navItems = [];
+  const navItems:string[] = [];
 
   return (
     <nav className='fixed top-0 left-0 right-0 z-40 p-6'>
