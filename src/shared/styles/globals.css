@@ -1,8 +1,27 @@
+@import "tailwindcss";
+
+@layer base {
+
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--color-gray-400);
+  }
+}
+
 @keyframes slideInFromTop {
   0% {
     transform: translateY(-100%);
     opacity: 0;
   }
+
   100% {
     transform: translateY(0);
     opacity: 1;
@@ -10,26 +29,71 @@
 }
 
 @keyframes dataFloat {
-  0%, 100% { transform: translateY(0px) scale(1); opacity: 0.6; }
-  50% { transform: translateY(-15px) scale(1.2); opacity: 1; }
+
+  0%,
+  100% {
+    transform: translateY(0px) scale(1);
+    opacity: 0.6;
+  }
+
+  50% {
+    transform: translateY(-15px) scale(1.2);
+    opacity: 1;
+  }
 }
 
 @keyframes scan {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 @keyframes grain {
-  0%, 100% { transform: translate(0, 0); }
-  10% { transform: translate(-5%, -5%); }
-  20% { transform: translate(-10%, 5%); }
-  30% { transform: translate(5%, -10%); }
-  40% { transform: translate(-5%, 15%); }
-  50% { transform: translate(-10%, 5%); }
-  60% { transform: translate(15%, 0%); }
-  70% { transform: translate(0%, 15%); }
-  80% { transform: translate(-15%, 10%); }
-  90% { transform: translate(10%, 5%); }
+
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+
+  10% {
+    transform: translate(-5%, -5%);
+  }
+
+  20% {
+    transform: translate(-10%, 5%);
+  }
+
+  30% {
+    transform: translate(5%, -10%);
+  }
+
+  40% {
+    transform: translate(-5%, 15%);
+  }
+
+  50% {
+    transform: translate(-10%, 5%);
+  }
+
+  60% {
+    transform: translate(15%, 0%);
+  }
+
+  70% {
+    transform: translate(0%, 15%);
+  }
+
+  80% {
+    transform: translate(-15%, 10%);
+  }
+
+  90% {
+    transform: translate(10%, 5%);
+  }
 }
 
 /* Morphing Button Styles */
@@ -176,34 +240,26 @@
   bottom: -1px;
   border-radius: 25px;
   border: 1px solid transparent;
-  background: linear-gradient(
-    90deg,
-    #def846 0%,
-    #def846 25%,
-    transparent 25%,
-    transparent 100%
-  ) top left,
-  linear-gradient(
-    0deg,
-    #def846 0%,
-    #def846 25%,
-    transparent 25%,
-    transparent 100%
-  ) top right,
-  linear-gradient(
-    -90deg,
-    #def846 0%,
-    #def846 25%,
-    transparent 25%,
-    transparent 100%
-  ) bottom right,
-  linear-gradient(
-    180deg,
-    #def846 0%,
-    #def846 25%,
-    transparent 25%,
-    transparent 100%
-  ) bottom left;
+  background: linear-gradient(90deg,
+      #def846 0%,
+      #def846 25%,
+      transparent 25%,
+      transparent 100%) top left,
+    linear-gradient(0deg,
+      #def846 0%,
+      #def846 25%,
+      transparent 25%,
+      transparent 100%) top right,
+    linear-gradient(-90deg,
+      #def846 0%,
+      #def846 25%,
+      transparent 25%,
+      transparent 100%) bottom right,
+    linear-gradient(180deg,
+      #def846 0%,
+      #def846 25%,
+      transparent 25%,
+      transparent 100%) bottom left;
   background-size: 0% 1px, 1px 0%, 0% 1px, 1px 0%;
   background-repeat: no-repeat;
   opacity: 0;
@@ -213,7 +269,7 @@
 .skill-badge:hover::before {
   opacity: 1;
   background-size: 100% 1px, 1px 100%, 100% 1px, 1px 100%;
-  transition: 
+  transition:
     opacity 0.05s ease,
     background-size 0.4s linear 0.05s;
 }
@@ -239,4 +295,4 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Add any other global styles here */ 
+/* Add any other global styles here */

@@ -1,9 +1,17 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
+import mdx from '@mdx-js/rollup'
+import remarkMdxFrontmatter from 'remark-mdx-frontmatter'
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(),
+  mdx({
+    remarkPlugins: [
+      [remarkMdxFrontmatter, { name: 'frontmatter' }]
+    ]
+  })
+  ],
   build: {
     outDir: 'build',
   },
