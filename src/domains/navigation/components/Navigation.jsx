@@ -2,7 +2,7 @@ import React from 'react';
 import { useScrollBehavior } from '../../../shared/hooks/useScrollBehavior';
 import logo from '../../../assets/logo.svg';
 
-const Navigation = ({ isVisible, activeSection, setActiveSection }) => {
+const Navigation = ({ isVisible, setActiveSection }) => {
   const { scrolled } = useScrollBehavior();
 
   // const navItems = ['Blog', 'About', 'Contact'];

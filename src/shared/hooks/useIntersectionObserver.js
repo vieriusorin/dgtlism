@@ -26,7 +26,7 @@ export const useIntersectionObserver = (options = {}) => {
     });
 
     return () => observer.disconnect();
-  }, []);
+  }, [options]);
 
   return { visibleSections, addToRefs };
 }; 
